@@ -54,6 +54,7 @@ class Urls:
 
 
 # Load XML file into a tree in memory
+print("Beginning parse...")
 tree = ET.parse('data/artists.xml')
 print("Parse complete")
 root = tree.getroot()
@@ -63,6 +64,8 @@ con = p.connect(database='postgres', host='localhost', port=5432)
 cur = con.cursor()
 
 
+failure_counter = 0
+success_counter = 0
 # Iterate over each artist in db
 for entry in root:
 
@@ -86,8 +89,6 @@ for entry in root:
             for url in elem:
                 if url.text is not None:
                     artist.urls.append(url.text)
-                else:
-                    artist.report_error(url)
 
     artist.parse_urls()
 
@@ -105,8 +106,9 @@ for entry in root:
                                                                                                 artist.twitter_url,
                                                                                                 artist.instagram_url))
         con.commit()
+        success_counter += 1
     except:
         con.rollback()
-        print(f"Insert failed for artist: {artist.name}")
+        failure_counter += 1
 
-
+print(f"Successful Inserts: {success_counter}\nFailed Inserts: {failure_counter}")
