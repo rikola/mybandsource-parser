@@ -20,45 +20,28 @@ class Artist:
         self.twitter_url = None
         self.instagram_url = None
 
-
     def parse_urls(self):
-
-        for url in self.urls:
+        for entry in self.urls:
 
             o = ''
             try:
-                o = urlparse(url)
+                o = urlparse(entry)
             except:
                 continue
 
-            try:
-                if o.netloc.find('facebook.com') >= 0:
-                    self.facebook_url = url
-            except:
-                self.report_error(url)
-            try:
-                if o.netloc.find('soundcloud.com') >= 0:
-                    self.soundcloud_url = url
-            except:
-                self.report_error(url)
-            try:
-                if o.netloc.find('spotify.com') >= 0:
-                    self.spotify_url = url
-            except:
-                self.report_error(url)
-            try:
-                if o.netloc.find('twitter.com') >= 0:
-                    self.twitter_url = url
-            except:
-                self.report_error(url)
-            try:
-                if o.netloc.find('instagram.com') >= 0:
-                    self.instagram_url = url
-            except:
-                self.report_error(url)
+            if o.netloc.find('facebook.com') >= 0:
+                    self.facebook_url = entry
+            elif o.netloc.find('soundcloud.com') >= 0:
+                self.soundcloud_url = entry
+            elif o.netloc.find('spotify.com') >= 0:
+                self.spotify_url = entry
+            elif o.netloc.find('twitter.com') >= 0:
+                self.twitter_url = entry
+            elif o.netloc.find('instagram.com') >= 0:
+                self.instagram_url = entry
 
     def report_error(self, url):
-        print(f"Parse Error: Artist={artist.name}, {url}")
+        print(f"Empty URL tag error: Artist={artist.name}, {url.text}")
 
 
 class Urls:
@@ -103,17 +86,27 @@ for entry in root:
             for url in elem:
                 if url.text is not None:
                     artist.urls.append(url.text)
+                else:
+                    artist.report_error(url)
 
     artist.parse_urls()
 
+    # Attempt the DB insert
     try:
         cur.execute("INSERT INTO artists VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (artist.id,
-                                                                                                    artist.name,
-                                                                                                    artist.realname, artist.profile, artist.data_quality,
-                                                                                                    artist.namevariation, artist.facebook_url, artist.soundcloud_url, artist.spotify_url, artist.twitter_url, artist.instagram_url))
+                                                                                                artist.name,
+                                                                                                artist.realname,
+                                                                                                artist.profile,
+                                                                                                artist.data_quality,
+                                                                                                artist.namevariation,
+                                                                                                artist.facebook_url,
+                                                                                                artist.soundcloud_url,
+                                                                                                artist.spotify_url,
+                                                                                                artist.twitter_url,
+                                                                                                artist.instagram_url))
         con.commit()
     except:
         con.rollback()
-        print("Insert failed")
+        print(f"Insert failed for artist: {artist.name}")
 
 
